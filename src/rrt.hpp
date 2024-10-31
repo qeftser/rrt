@@ -1,0 +1,34 @@
+
+#ifndef __RRT
+
+#define __RRT
+#include "environment.hpp"
+#include "edge.hpp"
+#include "vertex.hpp"
+#include "point_set.hpp"
+
+class rrt {
+public:
+   environment * env;
+   point_set * points;
+
+   rrt() : env(NULL), points(NULL) {}
+   rrt(const vertex init, environment * env, point_set * p) : env(env), points(p) {
+      edge * start = new edge(init,init);
+      points->add(start);
+   }
+
+   void generate_next(int num) {
+      for (int i = 0; i < num; ++i) {
+         vertex random = vertex::rand(env->xsize,env->ysize);
+         edge * nearest = points->closest(random);
+         vertex new_state = ((random/random.dist(vertex()))*2)+nearest->to;
+         edge * new_edge = new edge(nearest->to,new_state,nearest);
+         nearest->children.push_back(new_edge);
+         points->add(new_edge);
+      }
+   }
+
+};
+
+#endif
