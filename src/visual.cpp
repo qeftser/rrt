@@ -36,6 +36,8 @@ void draw_environment(sf::RenderWindow * window, environment * env) {
 
 int main(int args, char ** argv) {
 
+   srand(time(NULL)*clock());
+
    /* SFML display types */
    sf::RenderWindow window;
    sf::View view = sf::View();
@@ -54,7 +56,7 @@ int main(int args, char ** argv) {
    /* Variables for the RRT process */
    environment env = environment(200,100);
    point_set * points = new simple_point_set();
-   rrt rrt_algo = rrt(vertex(),&env,points);
+   rrt rrt_algo = rrt(vertex(1,1),&env,points);
 
    window.create(sf::VideoMode(1280,720),"viewer");
    window.setFramerateLimit(30);

@@ -22,10 +22,13 @@ public:
       for (int i = 0; i < num; ++i) {
          vertex random = vertex::rand(env->xsize,env->ysize);
          edge * nearest = points->closest(random);
-         vertex new_state = ((random/random.dist(vertex()))*2)+nearest->to;
-         edge * new_edge = new edge(nearest->to,new_state,nearest);
-         nearest->children.push_back(new_edge);
-         points->add(new_edge);
+         vertex new_state = (random-nearest->to);
+         new_state = (new_state/new_state.dist(vertex()))+nearest->to;
+         if (!0) {//edge::is_collision(nearest->to,new_state,env)) {
+            edge * new_edge = new edge(nearest->to,new_state,nearest);
+            nearest->children.push_back(new_edge);
+            points->add(new_edge);
+         }
       }
    }
 

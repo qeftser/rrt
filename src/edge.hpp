@@ -42,7 +42,7 @@ public:
       vertex step(1 / (to.x-from.x),1 / (to.y-from.y));
       vertex pos(from.x,from.y);
       while (to.dist(pos) > 0.25) {
-         if (env->occupancy[(int)pos.x][(int)pos.y])
+         if (pos.x < 0 || pos.x > env->xsize || pos.y < 0 || pos.x > env->ysize || env->occupancy[(int)pos.x][(int)pos.y])
             return true;
          pos += step;
       }
