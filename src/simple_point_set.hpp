@@ -41,6 +41,19 @@ public:
          edge::display_edge(window,e);
    }
 
+   void start(edge e) {
+      start_point = e;
+      add(&start_point);
+   }
+
+   void reset() {
+      remove(&start_point);
+      for (edge * e : edges)
+         delete e;
+      edges.clear();
+      add(&start_point);
+   }
+
 };
 
 #endif

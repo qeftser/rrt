@@ -11,6 +11,7 @@ public:
    double y;
 
    vertex() : x(0), y(0) {}
+   vertex(const vertex & other) : x(other.x), y(other.y) {}
    vertex(double x, double y) : x(x), y(y) {}
 
    const double dist(const vertex & other) const {
@@ -41,6 +42,10 @@ public:
 
    static vertex rand(int max_x, int max_y) {
       return vertex(((double)std::rand()/RAND_MAX)*max_x,((double)std::rand()/RAND_MAX)*max_y);
+   }
+
+   double slope(const vertex & other) const {
+      return ((x-other.x)/(y-other.y));
    }
 };
 

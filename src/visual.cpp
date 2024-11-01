@@ -5,9 +5,16 @@
 #include <fcntl.h>
 #include <setjmp.h>
 #include <signal.h>
+
 #include "environment.hpp"
+
 #include "point_set.hpp"
 #include "simple_point_set.hpp"
+
+#include "collision_engine.hpp"
+#include "simple_collision_engine.hpp"
+
+#include "rrt_base.hpp"
 #include "rrt.hpp"
 
 void draw_environment(sf::RenderWindow * window, environment * env) {
@@ -47,16 +54,19 @@ int main(int args, char ** argv) {
    double winScale;
    double startX, startY, posX, posY;
 
-   bool   mouseDown;
+   bool   leftMouseDown = false;
+   bool   rightMouseDown = false;
    bool   paused;
    int    lastKey;
    int    xpos, ypos;
+   double rate;
    double scale;
 
    /* Variables for the RRT process */
    environment env = environment(200,100);
    point_set * points = new simple_point_set();
-   rrt rrt_algo = rrt(vertex(1,1),&env,points);
+   collision_engine * ce = new simple_collision_engine(&env);
+   rrt_base * rrt_algo = new rrt(vertex(1,1),&env,points,ce);
 
    window.create(sf::VideoMode(1280,720),"viewer");
    window.setFramerateLimit(30);
@@ -64,23 +74,48 @@ int main(int args, char ** argv) {
    ypos = (env.ysize*10)/2;
    scale = 1.2;
    paused = true;
+   rate = 1;
 
    while (window.isOpen()) {
       
       if (!paused)
-         rrt_algo.generate_next(10);
+         rrt_algo->generate_next(rate);
+
+      if (leftMouseDown) {
+         sf::Vector2f pos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+         vertex mpos = vertex(pos.x/10,pos.y/10);
+         if (mpos.x > 0 && mpos.y > 0 && mpos.x < env.xsize && mpos.y < env.ysize)
+            env.set((int)floor(mpos.x),(int)floor(mpos.y));
+      }
+
+      if (rightMouseDown) {
+         sf::Vector2f pos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+         vertex mpos = vertex(pos.x/10,pos.y/10);
+         if (mpos.x > 0 && mpos.y > 0 && mpos.x < env.xsize && mpos.y < env.ysize)
+            env.unset((int)floor(mpos.x),(int)floor(mpos.y));
+      }
 
       while (window.pollEvent(event)) {
          if (event.type == sf::Event::Closed) {
             window.close();
          }
+         else if (event.type == sf::Event::MouseWheelScrolled) {
+            if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
+               rate = (1 > rate + 10*event.mouseWheelScroll.delta ? 1 : rate + 10*event.mouseWheelScroll.delta);
+         }
          else if (event.type == sf::Event::MouseButtonPressed) {
-            sf::Vector2f pos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-            sf::Vector2u ws = window.getSize();
-            mouseDown = true;
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Middle))
+               rate = 1;
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+               leftMouseDown = true;
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right))
+               rightMouseDown = true;
          }
          else if (event.type == sf::Event::MouseButtonReleased) {
-            mouseDown = false;
+            if (leftMouseDown)
+               leftMouseDown = false;
+            if (rightMouseDown)
+               rightMouseDown = false;
          }
          else if (event.type == sf::Event::KeyPressed) {
             lastKey = event.key.code;
@@ -112,6 +147,12 @@ int main(int args, char ** argv) {
                   break;
                case sf::Keyboard::Space:
                   paused = !paused;
+                  break;
+               case sf::Keyboard::C:
+                  points->reset();
+                  break;
+               case sf::Keyboard::E:
+                  env.clear();
                   break;
             }
          }

@@ -3,6 +3,8 @@
 
 #define __ENVIROMENT
 #include <cstdlib>
+#include <cstring>
+#include "vertex.hpp"
 
 class environment {
 public:
@@ -36,6 +38,17 @@ public:
       if (x < 0 || x >= xsize || y < 0 || y > ysize)
          return;
       occupancy[x][y] = 0;
+   }
+
+   bool isset(const vertex & v) {
+      if (occupancy[(int)floor(v.x)][(int)floor(v.y)])
+         return true;
+      return false;
+   }
+
+   void clear() {
+      for (int i = 0; i < xsize; ++i)
+         bzero(occupancy[i],sizeof(int)*ysize);
    }
 };
 
