@@ -66,7 +66,7 @@ int main(int args, char ** argv) {
    environment env = environment(200,100);
    point_set * points = new simple_point_set();
    collision_engine * ce = new simple_collision_engine(&env);
-   rrt_base * rrt_algo = new rrt(vertex(1,1),&env,points,ce);
+   rrt_base * rrt_algo = new rrt(vertex(100,50),&env,points,ce);
 
    window.create(sf::VideoMode(1280,720),"viewer");
    window.setFramerateLimit(30);
