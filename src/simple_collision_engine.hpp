@@ -21,6 +21,8 @@ public:
    bool is_collision(const vertex & from, const vertex & to) {
       if (to.x < 0 || to.x >= env->xsize || to.y < 0 || to.y >= env->ysize)
          return true;
+      if (from.x < 0 || from.x >= env->xsize || from.y < 0 || from.y >= env->ysize)
+         return true;
       if (env->isset(from) || env->isset(to))
          return true;
       return false;

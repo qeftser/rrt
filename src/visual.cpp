@@ -16,6 +16,7 @@
 
 #include "rrt_base.hpp"
 #include "rrt.hpp"
+#include "rrt_star.hpp"
 
 void draw_environment(sf::RenderWindow * window, environment * env) {
    sf::RectangleShape rect;
@@ -63,10 +64,11 @@ int main(int args, char ** argv) {
    double scale;
 
    /* Variables for the RRT process */
+   vertex start = vertex(100,50);
    environment env = environment(200,100);
    point_set * points = new simple_point_set();
    collision_engine * ce = new simple_collision_engine(&env);
-   rrt_base * rrt_algo = new rrt(vertex(100,50),&env,points,ce);
+   rrt_base * rrt_algo = new rrt(start,&env,points,ce);
 
    window.create(sf::VideoMode(1280,720),"viewer");
    window.setFramerateLimit(30);
@@ -153,6 +155,16 @@ int main(int args, char ** argv) {
                   break;
                case sf::Keyboard::E:
                   env.clear();
+                  break;
+               case sf::Keyboard::Num0:
+                  delete rrt_algo;
+                  rrt_algo = new rrt(start,&env,points,ce);
+                  points->reset();
+                  break;
+               case sf::Keyboard::Num1:
+                  delete rrt_algo;
+                  rrt_algo = new rrt_star(start,&env,points,ce);
+                  points->reset();
                   break;
             }
          }

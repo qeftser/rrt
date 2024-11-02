@@ -23,7 +23,7 @@ public:
 
    void in_range(const vertex & v, double range, std::vector<edge *> * results) {
       for (edge * e : edges)
-         if (e->to.dist(v) <= range)
+         if (e->to.dist(v) <= range || e->from.dist(v) <= range)
             results->push_back(e);
    }
 
@@ -41,17 +41,17 @@ public:
          edge::display_edge(window,e);
    }
 
-   void start(edge e) {
+   void start(edge * e) {
       start_point = e;
-      add(&start_point);
+      add(start_point);
    }
 
    void reset() {
-      remove(&start_point);
+      remove(start_point);
       for (edge * e : edges)
          delete e;
       edges.clear();
-      add(&start_point);
+      add(start_point);
    }
 
 };

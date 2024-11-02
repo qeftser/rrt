@@ -38,6 +38,7 @@ To start or pause/unpause the simualation use the space bar. The scroll wheel wi
 decrease the speed new edges are generated at. If you have a scroll wheel button, that will reset
 the rate to the default. The C key will clear all edges and restart. To add obstacles, hold down
 the left mouse button and drag. Doing the same thing with the right mouse button will remove obstacles.
+You can use the number keys to swap algorithms as well. The default is normal RRT.
    
 ```
 Up,    K = move up
@@ -51,6 +52,9 @@ Right, L = move right
 
 Left  Mouse  = add obstacle
 Right Mouse  = remove obstacle
-Scroll Wheel = increase generation rate
+Scroll Wheel = increase/decrease generation rate
 Middle Mouse = reset generation rate
+
+   Num 0 = Swap to algorithm RRT
+   Num 1 = Swap to algorithm RRT*
 ```
