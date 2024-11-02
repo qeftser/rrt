@@ -24,19 +24,19 @@ public:
       return *this;
    }
 
-   vertex operator+(const vertex & other) {
+   vertex operator+(const vertex & other) const {
       return vertex(x+other.x,y+other.y);
    }
 
-   vertex operator-(const vertex & other) {
+   vertex operator-(const vertex & other) const {
       return vertex(x-other.x,y-other.y);
    }
 
-   vertex operator/(double divisor) {
+   vertex operator/(double divisor) const {
       return vertex(x/divisor,y/divisor);
    }
 
-   vertex operator*(double multiplier) {
+   vertex operator*(double multiplier) const {
       return vertex(x*multiplier,y*multiplier);
    }
 

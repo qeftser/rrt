@@ -1,7 +1,7 @@
 
-#ifndef __RRT_STAR
+#ifndef __QUICK_RRT_STAR
 
-#define __RRT_STAR
+#define __QUICK_RRT_STAR
 #include "environment.hpp"
 #include "edge.hpp"
 #include "weighted_edge.hpp"
@@ -13,14 +13,14 @@
 #include <cfloat>
 
 
-class rrt_star : public rrt_base {
+class quick_rrt_star : public rrt_base {
 public:
    environment * env;
    point_set * points;
    collision_engine * ce;
 
-   rrt_star() : env(NULL), points(NULL), ce(NULL) {}
-   rrt_star(const vertex init, environment * env, point_set * p, collision_engine * c) : env(env), points(p), ce(c) {
+   quick_rrt_star() : env(NULL), points(NULL), ce(NULL) {}
+   quick_rrt_star(const vertex init, environment * env, point_set * p, collision_engine * c) : env(env), points(p), ce(c) {
       weighted_edge * start = new weighted_edge(init,init);
       points->start(start);
    }
@@ -40,16 +40,22 @@ public:
          /* get near vertices */
          std::vector<weighted_edge *> near;
          near.push_back(nearest);
-         points->in_range(new_state,1.5,(std::vector<edge *> *)&near);
+         points->in_range(new_state,1.1,(std::vector<edge *> *)&near);
 
          /* find lowest cost for parent */
          double low_cost = DBL_MAX;
          weighted_edge * low_edge = NULL;
+         weighted_edge * ancestor;
          for (weighted_edge * e : near) {
-            if (!ce->is_collision(e->to,new_state) &&
-                e->cost+e->to.dist(new_state) < low_cost) {
-               low_cost = e->cost+e->to.dist(new_state);
-               low_edge = e;
+            int depth = 3;
+            ancestor = e;
+            while (--depth && ancestor) {
+               if (!ce->is_collision(ancestor->to,new_state) &&
+                   ancestor->cost+ancestor->to.dist(new_state) < low_cost) {
+                  low_cost = ancestor->cost+e->to.dist(new_state);
+                  low_edge = ancestor;
+               }
+               ancestor = (weighted_edge *)ancestor->parent;
             }
          }
 
@@ -61,16 +67,20 @@ public:
             points->add(new_edge);
 
             /* find any children to rewire */
-            for (weighted_edge * e : near) {
-               if (!ce->is_collision(new_state,e->to) &&
-                   new_edge->cost+new_state.dist(e->to) < e->cost) {
-                  auto result = remove(e->parent->children.begin(),e->parent->children.end(),e);
-                  e->parent = new_edge;
-                  e->from = new_edge->to;
-                  new_edge->children.push_back(e);
-                  e->cost = new_edge->cost+new_state.dist(e->to);
+            int depth = 3;
+            do {
+               for (weighted_edge * e : near) {
+                  if (!ce->is_collision(new_state,e->to) &&
+                      new_edge->cost+new_state.dist(e->to) < e->cost) {
+                     auto result = remove(e->parent->children.begin(),e->parent->children.end(),e);
+                     e->parent = new_edge;
+                     e->from = new_edge->to;
+                     new_edge->children.push_back(e);
+                     e->cost = new_edge->cost+new_state.dist(e->to);
+                  }
                }
-            }
+               new_edge = (weighted_edge *)new_edge->parent;
+            } while (--depth && new_edge);
          }
       }
    }

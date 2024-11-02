@@ -57,4 +57,5 @@ Middle Mouse = reset generation rate
 
    Num 0 = Swap to algorithm RRT
    Num 1 = Swap to algorithm RRT*
+   Num 2 = Swap to broken Q-RRT*
 ```

@@ -12,11 +12,13 @@
 #include "simple_point_set.hpp"
 
 #include "collision_engine.hpp"
-#include "simple_collision_engine.hpp"
+#include "dda_collision_engine.hpp"
+#include "bresenham_collision_engine.hpp"
 
 #include "rrt_base.hpp"
 #include "rrt.hpp"
 #include "rrt_star.hpp"
+#include "quick_rrt_star.hpp"
 
 void draw_environment(sf::RenderWindow * window, environment * env) {
    sf::RectangleShape rect;
@@ -67,7 +69,7 @@ int main(int args, char ** argv) {
    vertex start = vertex(100,50);
    environment env = environment(200,100);
    point_set * points = new simple_point_set();
-   collision_engine * ce = new simple_collision_engine(&env);
+   collision_engine * ce = new bresenham_collision_engine(&env);
    rrt_base * rrt_algo = new rrt(start,&env,points,ce);
 
    window.create(sf::VideoMode(1280,720),"viewer");
@@ -86,15 +88,23 @@ int main(int args, char ** argv) {
       if (leftMouseDown) {
          sf::Vector2f pos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
          vertex mpos = vertex(pos.x/10,pos.y/10);
-         if (mpos.x > 0 && mpos.y > 0 && mpos.x < env.xsize && mpos.y < env.ysize)
+         if (mpos.x > 0 && mpos.y > 0 && mpos.x < env.xsize && mpos.y < env.ysize) {
             env.set((int)floor(mpos.x),(int)floor(mpos.y));
+            env.set((int)ceil(mpos.x),(int)ceil(mpos.y));
+            env.set((int)floor(mpos.x),(int)ceil(mpos.y));
+            env.set((int)floor(mpos.x),(int)ceil(mpos.y));
+         }
       }
 
       if (rightMouseDown) {
          sf::Vector2f pos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
          vertex mpos = vertex(pos.x/10,pos.y/10);
-         if (mpos.x > 0 && mpos.y > 0 && mpos.x < env.xsize && mpos.y < env.ysize)
+         if (mpos.x > 0 && mpos.y > 0 && mpos.x < env.xsize && mpos.y < env.ysize) {
             env.unset((int)floor(mpos.x),(int)floor(mpos.y));
+            env.unset((int)ceil(mpos.x),(int)ceil(mpos.y));
+            env.unset((int)floor(mpos.x),(int)ceil(mpos.y));
+            env.unset((int)ceil(mpos.x),(int)floor(mpos.y));
+         }
       }
 
       while (window.pollEvent(event)) {
@@ -164,6 +174,11 @@ int main(int args, char ** argv) {
                case sf::Keyboard::Num1:
                   delete rrt_algo;
                   rrt_algo = new rrt_star(start,&env,points,ce);
+                  points->reset();
+                  break;
+               case sf::Keyboard::Num2:
+                  delete rrt_algo;
+                  rrt_algo = new quick_rrt_star(start,&env,points,ce);
                   points->reset();
                   break;
             }
