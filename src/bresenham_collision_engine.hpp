@@ -28,6 +28,8 @@ public:
          return true;
       if (from.x < 0 || from.x >= env->xsize || from.y < 0 || from.y >= env->ysize)
          return true;
+      if (env->isset(from) || env->isset(to))
+         return true;
 
       int x0 = (from.x < to.x ? from.x : to.x)*16;
       int x1 = (from.x > to.x ? from.x : to.x)*16;

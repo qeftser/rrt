@@ -28,6 +28,8 @@ public:
          return true;
       if (from.x < 0 || from.x >= env->xsize || from.y < 0 || from.y >= env->ysize)
          return true;
+      if (env->isset(from) || env->isset(to))
+         return true;
 
       vertex distance = to - from;
       double step = fabs(distance.x);
