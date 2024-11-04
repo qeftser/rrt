@@ -1,4 +1,3 @@
-
 #include <SFML/Graphics.hpp>
 #include <chrono>
 #include <errno.h>
@@ -43,6 +42,19 @@ void draw_environment(sf::RenderWindow * window, environment * env) {
    }
 }
 
+void draw_path(sf::Vector2f * mouse, sf::RenderWindow * window, point_set * p) {
+   edge * start = p->closest(vertex(mouse->x/10,mouse->y/10));
+   sf::Vertex point[2];
+   point[1].color = sf::Color::Red;
+   point[0].color = sf::Color::Red;
+   while (start) {
+      point[1].position = sf::Vector2f(start->to.x*10,start->to.y*10);
+      point[0].position = sf::Vector2f(start->from.x*10,start->from.y*10);
+      window->draw(point,2,sf::Lines);
+      start = start->parent;
+   }
+}
+
 int main(int args, char ** argv) {
 
    srand(time(NULL)*clock());
@@ -58,11 +70,13 @@ int main(int args, char ** argv) {
 
    bool   leftMouseDown = false;
    bool   rightMouseDown = false;
+   bool   display_path = false;
    bool   paused;
    int    lastKey;
    int    xpos, ypos;
    double rate;
    double scale;
+   sf::Vector2f mouse;
 
    /* Variables for the RRT process */
    vertex start = vertex(100,50);
@@ -85,9 +99,10 @@ int main(int args, char ** argv) {
       if (!paused)
          rrt_algo->generate_next(rate);
 
+      mouse = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+
       if (leftMouseDown) {
-         sf::Vector2f pos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-         vertex mpos = vertex(pos.x/10,pos.y/10);
+         vertex mpos = vertex(mouse.x/10,mouse.y/10);
          if (mpos.x > 0 && mpos.y > 0 && mpos.x < env.xsize && mpos.y < env.ysize) {
             env.set((int)floor(mpos.x),(int)floor(mpos.y));
             env.set((int)ceil(mpos.x),(int)ceil(mpos.y));
@@ -97,8 +112,7 @@ int main(int args, char ** argv) {
       }
 
       if (rightMouseDown) {
-         sf::Vector2f pos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-         vertex mpos = vertex(pos.x/10,pos.y/10);
+         vertex mpos = vertex(mouse.x/10,mouse.y/10);
          if (mpos.x > 0 && mpos.y > 0 && mpos.x < env.xsize && mpos.y < env.ysize) {
             env.unset((int)floor(mpos.x),(int)floor(mpos.y));
             env.unset((int)ceil(mpos.x),(int)ceil(mpos.y));
@@ -166,6 +180,14 @@ int main(int args, char ** argv) {
                case sf::Keyboard::E:
                   env.clear();
                   break;
+               case sf::Keyboard::X:
+                  display_path = !display_path;
+                  break;
+               case sf::Keyboard::S:
+                  start = vertex(mouse.x/10,mouse.y/10);
+                  points->start(new edge(start,start));
+                  points->reset();
+                  break;
                case sf::Keyboard::Num0:
                   delete rrt_algo;
                   rrt_algo = new rrt(start,&env,points,ce);
@@ -194,25 +216,10 @@ int main(int args, char ** argv) {
 
       /* drawing operations */
 
-
-      // debug collision
-      /*
-      {
-         sf::Vector2f pos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-         sf::Vertex points[2];
-         points[0].position = pos;
-         points[1].position.x = start.x*10;
-         points[1].position.y = start.y*10;
-         env.clear();
-         window.draw(points,2,sf::Lines);
-         vertex pos2(pos.x/10,pos.y/10);
-         ce->is_collision(start,pos2);
-      }
-      */
-
-
       draw_environment(&window,&env);
       points->draw(&window);
+      if (display_path)
+         draw_path(&mouse,&window,points);
 
       /* end drawings here */
 

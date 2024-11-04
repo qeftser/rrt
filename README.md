@@ -49,6 +49,8 @@ Right, L = move right
        O = zoom out
        C = clear edges
        E = empty environment
+       X = display closest route to mouse position
+       S = change start point to mouse position and reset
 
 Left  Mouse  = add obstacle
 Right Mouse  = remove obstacle
