@@ -13,7 +13,6 @@
 
 #include "collision_engine.hpp"
 #include "dda_collision_engine.hpp"
-#include "bresenham_collision_engine.hpp"
 
 #include "rrt_base.hpp"
 #include "rrt.hpp"
@@ -69,7 +68,7 @@ int main(int args, char ** argv) {
    vertex start = vertex(100,50);
    environment env = environment(200,100);
    point_set * points = new simple_point_set();
-   collision_engine * ce = new bresenham_collision_engine(&env);
+   collision_engine * ce = new dda_collision_engine(&env);
    rrt_base * rrt_algo = new rrt(start,&env,points,ce);
 
    window.create(sf::VideoMode(1280,720),"viewer");
@@ -81,6 +80,7 @@ int main(int args, char ** argv) {
    rate = 1;
 
    while (window.isOpen()) {
+
       
       if (!paused)
          rrt_algo->generate_next(rate);
@@ -193,6 +193,23 @@ int main(int args, char ** argv) {
       window.setView(view);
 
       /* drawing operations */
+
+
+      // debug collision
+      /*
+      {
+         sf::Vector2f pos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+         sf::Vertex points[2];
+         points[0].position = pos;
+         points[1].position.x = start.x*10;
+         points[1].position.y = start.y*10;
+         env.clear();
+         window.draw(points,2,sf::Lines);
+         vertex pos2(pos.x/10,pos.y/10);
+         ce->is_collision(start,pos2);
+      }
+      */
+
 
       draw_environment(&window,&env);
       points->draw(&window);

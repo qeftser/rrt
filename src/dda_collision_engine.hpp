@@ -36,7 +36,7 @@ public:
       if (step < fabs(distance.y))
          step = fabs(distance.y);
 
-      distance = distance/(step*24);
+      distance = distance/(step);
       vertex position = from;
 
       int i = 0;

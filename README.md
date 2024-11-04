@@ -55,7 +55,7 @@ Right Mouse  = remove obstacle
 Scroll Wheel = increase/decrease generation rate
 Middle Mouse = reset generation rate
 
-   Num 0 = Swap to algorithm RRT
-   Num 1 = Swap to algorithm RRT*
-   Num 2 = Swap to broken Q-RRT*
+   Num 0 = Swap to RRT
+   Num 1 = Swap to RRT*
+   Num 2 = Swap to Q-RRT*
 ```

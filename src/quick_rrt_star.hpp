@@ -47,16 +47,16 @@ public:
          weighted_edge * low_edge = NULL;
          weighted_edge * ancestor;
          for (weighted_edge * e : near) {
-            int depth = 3;
+            int depth = 5;
             ancestor = e;
-            while (--depth && ancestor) {
+            do {
                if (!ce->is_collision(ancestor->to,new_state) &&
                    ancestor->cost+ancestor->to.dist(new_state) < low_cost) {
                   low_cost = ancestor->cost+e->to.dist(new_state);
                   low_edge = ancestor;
                }
                ancestor = (weighted_edge *)ancestor->parent;
-            }
+            } while (--depth && ancestor); 
          }
 
          /* insert new edge */
@@ -67,20 +67,27 @@ public:
             points->add(new_edge);
 
             /* find any children to rewire */
-            int depth = 3;
-            do {
-               for (weighted_edge * e : near) {
-                  if (!ce->is_collision(new_state,e->to) &&
-                      new_edge->cost+new_state.dist(e->to) < e->cost) {
+            int depth;
+            weighted_edge * best, * curr;
+            for (weighted_edge * e : near) {
+               best = NULL;
+               curr = new_edge;
+               depth = 5;
+               if (new_edge->cost+new_edge->to.dist(e->to) < e->cost) {
+                  while (curr && depth-- &&
+                        !ce->is_collision(curr->to,e->to)) {
+                     best = curr;
+                     curr = (weighted_edge *)curr->parent;
+                  }
+                  if (best) {
                      auto result = remove(e->parent->children.begin(),e->parent->children.end(),e);
-                     e->parent = new_edge;
-                     e->from = new_edge->to;
-                     new_edge->children.push_back(e);
-                     e->cost = new_edge->cost+new_state.dist(e->to);
+                     e->parent = best;
+                     e->from = best->to;
+                     best->children.push_back(e);
+                     e->cost = best->cost+best->to.dist(e->to);
                   }
                }
-               new_edge = (weighted_edge *)new_edge->parent;
-            } while (--depth && new_edge);
+            }
          }
       }
    }
