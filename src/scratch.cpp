@@ -16,8 +16,9 @@ int main(void) {
 
    srand(time(NULL)*clock());
 
-   int total = 0x7fffff;
+   int total = 0xf;
 
+   /*
    {
       clock_t tStart = clock();
       for (int i = 0; i < total; ++i) {
@@ -37,7 +38,7 @@ int main(void) {
    {
       clock_t tStart = clock();
       for (int i = 0; i < total; ++i) {
-         int val = rand();
+         int val = rand()%20;
          B.insert(val,val);
       }
       printf("binary load: %f\n",(double)(clock()-tStart)/CLOCKS_PER_SEC);
@@ -64,6 +65,22 @@ int main(void) {
       }
       printf("binary dump: %f\n",(double)(clock()-tStart)/CLOCKS_PER_SEC);
    }
+   */
+
+   B.insert(1,1);
+   B.insert(2,2);
+   B.insert(5,5);
+   B.insert(4,4);
+   B.insert(7,7);
+   B.insert(9,9);
+   B.insert(3,3);
+
+   B.print();
+
+   B.update_key(1,10);
+   
+   int res = B.extract();
+   printf("res: %d\n",res);
 
    return 0;
 }

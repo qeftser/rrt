@@ -25,24 +25,21 @@ public:
       struct pair * nev = (struct pair *)malloc(sizeof(struct pair));
       nev->key = key; nev->pos = total; nev->val = val;
       elements.push_back(nev);
-      //members[elements[total]->key] = elements[total];
+      members[elements[total]->key] = elements[total];
       up_heap(total);
       ++total;
    }
 
    V extract(void) {
-      //printf("total: %d\n",total);
+      struct pair * temp;
       --total;
       temp = elements[0];
       elements[0] = elements[total];
-      elements[total] = NULL;
+      members.erase(elements[total]->key);
       elements.pop_back();
-      //members.erase(temp->key);
       down_heap(0);
       V ret = temp->val;
-      //printf("%p\n",temp);
-      //free(temp);
-      temp = NULL;
+      free(temp);
       return ret;
    }
 
@@ -61,6 +58,14 @@ public:
 
    bool empty() {
       return !total;
+   }
+
+   void print() {
+      printf("<");
+      for (pair * p : elements) {
+         printf("%ld ",p->key);
+      }
+      printf(">\n");
    }
 
 private:
@@ -102,24 +107,46 @@ private:
    }
 
    inline const void down_heap(const int i) {
-      if (left(i)-1 >= total || right(i) >= total)
+      if (left(i) >= total)
          return;
-      if (elements[left(i)] < elements[i]) {
-         if (elements[right(i)] < elements[left(i)]) {
-            temp = elements[right(i)];
-            elements[right(i)] = elements[i];
-            elements[i] = temp;
-            elements[i]->pos = elements[right(i)]->pos;
-            elements[right(i)]->pos = temp->pos;
-            down_heap(right(i));
-         }
-         else {
+      if (right(i) >= total) {
+         if (elements[left(i)]->key < elements[i]->key) {
             temp = elements[left(i)];
             elements[left(i)] = elements[i];
             elements[i] = temp;
             elements[i]->pos = elements[left(i)]->pos;
             elements[left(i)]->pos = temp->pos;
             down_heap(left(i));
+         }
+      }
+      else {
+         if (elements[left(i)]->key < elements[i]->key) {
+            if (elements[right(i)]->key < elements[left(i)]->key) {
+               temp = elements[right(i)];
+               elements[right(i)] = elements[i];
+               elements[i] = temp;
+               elements[i]->pos = elements[right(i)]->pos;
+               elements[right(i)]->pos = temp->pos;
+               down_heap(right(i));
+            }
+            else {
+               temp = elements[left(i)];
+               elements[left(i)] = elements[i];
+               elements[i] = temp;
+               elements[i]->pos = elements[left(i)]->pos;
+               elements[left(i)]->pos = temp->pos;
+               down_heap(left(i));
+            }
+         }
+         else {
+            if (elements[right(i)]->key < elements[i]->key) {
+               temp = elements[right(i)];
+               elements[right(i)] = elements[i];
+               elements[i] = temp;
+               elements[i]->pos = elements[right(i)]->pos;
+               elements[right(i)]->pos = temp->pos;
+               down_heap(right(i));
+            }
          }
       }
    }
