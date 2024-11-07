@@ -10,12 +10,22 @@
 #include <vector>
 #include <cfloat>
 
+struct weighted_edge_compare {
+   bool operator()(weighted_edge * we1, weighted_edge * we2) {
+      if (we1->cost < we2->cost)
+         return true;
+      return false;
+   }
+};
 
 class rrt_x : public rrt_base {
 public:
    environment * env;
    point_set * points;
    collision_engine * ce;
+   struct weighted_edge_compare we_comp;
+
+   std::queue<weighted_edge *> Q;
 
    rrt_x() : env(NULL), points(NULL), ce(NULL) {}
    rrt_x(const vertex init, environment * env, point_set * p, collision_engine * c) : env(env), points(p), ce(c) {
@@ -109,33 +119,54 @@ private:
             e->from = self->to;
             self->children.push_back(e);
             e->cost = self->cost+self->to.dist(e->to);
-            if (e->orphan)
+            if (e->orphan) 
                adopt(e);
          }
       }
    }
 
    inline void adopt(weighted_edge * orphan) {
-      std::vector<weighted_edge *> near;
-      orphan->orphan = false;
-      points->in_range(orphan->to,1.5,(std::vector<edge *> *)&near);
-      rewire_neighbors(orphan,&near);
+      Q.push(orphan);
+      while (!Q.empty()) {
+         orphan = Q.front(); Q.pop();
+         std::vector<weighted_edge *> near;
+         orphan->orphan = false;
+         points->in_range(orphan->to,1.5,(std::vector<edge *> *)&near);
+         for (weighted_edge * e : near) {
+            if (!ce->is_collision(orphan->to,e->to) &&
+                orphan->cost+orphan->to.dist(e->to) < e->cost) {
+               if (e->parent) {
+                  auto result = remove(e->parent->children.begin(),e->parent->children.end(),e);
+               }
+               e->parent = orphan;
+               e->from = orphan->to;
+               orphan->children.push_back(e);
+               e->cost = orphan->cost+orphan->to.dist(e->to);
+               if (e->orphan) 
+                  Q.push(e);
+            }
+         }
+      }
    }
 
    inline void propagate_orphanhood(weighted_edge * self) {
-      /*
-      if (self->parent) {
-         auto result = remove(self->parent->children.begin(),self->parent->children.end(),self);
-         self->parent->children.erase(result,self->parent->children.end());
+      Q.push(self);
+      while (!Q.empty()) {
+         self = Q.front(); Q.pop();
+         /*
+         if (self->parent) {
+            auto result = remove(self->parent->children.begin(),self->parent->children.end(),self);
+            self->parent->children.erase(result,self->parent->children.end());
+         }
+         */
+         self->orphan = true;
+         self->parent = NULL;
+         self->cost = DBL_MAX;
+         for (weighted_edge * w : *((std::vector<weighted_edge *> *)&self->children)) {
+            Q.push(w);
+         }
+         self->children.clear();
       }
-      */
-      self->orphan = true;
-      self->parent = NULL;
-      self->cost = DBL_MAX;
-      for (weighted_edge * w : *((std::vector<weighted_edge *> *)&self->children)) {
-         propagate_orphanhood(w);
-      }
-      self->children.clear();
    }
 
 };
