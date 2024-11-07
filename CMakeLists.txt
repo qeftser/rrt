@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.15)
 
 project(rrt VERSION 1.0 LANGUAGES CXX C)
 
+set(CMAKE_CXX_FLAGS "-g")
+
 find_package(SFML COMPONENTS window graphics system)
 
 add_executable(rrt_viewer src/visual.cpp)

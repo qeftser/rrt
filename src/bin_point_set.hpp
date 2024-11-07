@@ -123,7 +123,7 @@ public:
    void draw(sf::RenderWindow * window) {
       for (occupant * o : occupancy)
          for (edge * e : o->edges)
-            edge::display_edge(window,e);
+            e->display_edge(window);
    }
 
    void start(edge * e) {

@@ -13,6 +13,7 @@ public:
    collision_engine * ce;
 
    virtual void generate_next(int num) = 0;
+   virtual void notify_obstacle(const vertex pos) { };
 };
 
 #endif

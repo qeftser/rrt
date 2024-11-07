@@ -18,6 +18,7 @@
 #include "rrt.hpp"
 #include "rrt_star.hpp"
 #include "quick_rrt_star.hpp"
+#include "rrt_x.hpp"
 
 void draw_environment(sf::RenderWindow * window, environment * env) {
    sf::RectangleShape rect;
@@ -111,6 +112,7 @@ int main(int args, char ** argv) {
             env.set((int)floor(mpos.x),(int)ceil(mpos.y));
             env.set((int)floor(mpos.x),(int)ceil(mpos.y));
          }
+         rrt_algo->notify_obstacle(mpos);
       }
 
       if (rightMouseDown) {
@@ -206,6 +208,11 @@ int main(int args, char ** argv) {
                case sf::Keyboard::Num2:
                   delete rrt_algo;
                   rrt_algo = new quick_rrt_star(start,&env,points,ce);
+                  points->reset();
+                  break;
+               case sf::Keyboard::Num3:
+                  delete rrt_algo;
+                  rrt_algo = new rrt_x(start,&env,points,ce);
                   points->reset();
                   break;
             }

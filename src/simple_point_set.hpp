@@ -38,7 +38,7 @@ public:
 
    void draw(sf::RenderWindow * window) {
       for (edge * e : edges)
-         edge::display_edge(window,e);
+         e->display_edge(window);
    }
 
    void start(edge * e) {
