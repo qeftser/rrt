@@ -41,6 +41,8 @@ the left mouse button and drag. Doing the same thing with the right mouse button
 You can use the number keys to swap algorithms as well. The default is normal RRT.
    
 ```
+Space Bar = Start/Pause simulation
+
 Up,    K = move up
 Down,  J = move down
 Left,  H = move left
@@ -50,6 +52,7 @@ Right, L = move right
        C = clear edges
        E = empty environment
        X = display closest route to mouse position
+       F = display only the route to mouse position
        S = change start point to mouse position and reset
 
 Left  Mouse  = add obstacle

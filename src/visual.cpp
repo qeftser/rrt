@@ -9,6 +9,7 @@
 
 #include "point_set.hpp"
 #include "simple_point_set.hpp"
+#include "bin_point_set.hpp"
 
 #include "collision_engine.hpp"
 #include "dda_collision_engine.hpp"
@@ -71,6 +72,7 @@ int main(int args, char ** argv) {
    bool   leftMouseDown = false;
    bool   rightMouseDown = false;
    bool   display_path = false;
+   bool   focus_path = false;
    bool   paused;
    int    lastKey;
    int    xpos, ypos;
@@ -81,7 +83,7 @@ int main(int args, char ** argv) {
    /* Variables for the RRT process */
    vertex start = vertex(100,50);
    environment env = environment(200,100);
-   point_set * points = new simple_point_set();
+   point_set * points = new bin_point_set(5);
    collision_engine * ce = new dda_collision_engine(&env);
    rrt_base * rrt_algo = new rrt(start,&env,points,ce);
 
@@ -188,6 +190,9 @@ int main(int args, char ** argv) {
                   points->start(new edge(start,start));
                   points->reset();
                   break;
+               case sf::Keyboard::F:
+                  focus_path = !focus_path;
+                  break;
                case sf::Keyboard::Num0:
                   delete rrt_algo;
                   rrt_algo = new rrt(start,&env,points,ce);
@@ -217,8 +222,9 @@ int main(int args, char ** argv) {
       /* drawing operations */
 
       draw_environment(&window,&env);
-      points->draw(&window);
-      if (display_path)
+      if (!focus_path)
+         points->draw(&window);
+      if (display_path || focus_path)
          draw_path(&mouse,&window,points);
 
       /* end drawings here */
