@@ -112,8 +112,8 @@ public:
       if (room->empty()) {
          auto iterator = std::remove(occupancy.begin(),occupancy.end(),apartments[pos.x|((long)pos.y<<32)]);
          occupancy.erase(iterator,occupancy.end());
-         apartments.erase(pos.x|((long)pos.y<<32));
          free(apartments[pos.x|((long)pos.y<<32)]);
+         apartments.erase(pos.x|((long)pos.y<<32));
       }
    }
 

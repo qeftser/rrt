@@ -6,9 +6,11 @@
 #include "vertex.hpp"
 #include "environment.hpp"
 #include "rrt_base.hpp"
+#include "bin_point_set.hpp"
 #include <queue>
 #include <vector>
 #include <cfloat>
+#include <unordered_set>
 
 struct weighted_edge_compare {
    bool operator()(weighted_edge * we1, weighted_edge * we2) {
@@ -20,15 +22,24 @@ struct weighted_edge_compare {
 
 class rrt_x : public rrt_base {
 public:
+
+   const double R = 1.0;
+   const double cull_range = 3.0;
+   const int orphanage_room_size = 5;
+
    environment * env;
    point_set * points;
    collision_engine * ce;
    struct weighted_edge_compare we_comp;
+   point_set * orphanage;
 
    std::queue<weighted_edge *> Q;
 
-   rrt_x() : env(NULL), points(NULL), ce(NULL) {}
+   rrt_x() : env(NULL), points(NULL), ce(NULL) {
+      orphanage = new bin_point_set(orphanage_room_size);
+   }
    rrt_x(const vertex init, environment * env, point_set * p, collision_engine * c) : env(env), points(p), ce(c) {
+      orphanage = new bin_point_set(orphanage_room_size);
       weighted_edge * start = new weighted_edge(init,init);
       points->start(start);
    }
@@ -48,19 +59,20 @@ public:
          /* get near vertices */
          std::vector<weighted_edge *> near;
          near.push_back(nearest);
-         points->in_range(new_state,1.5,(std::vector<edge *> *)&near);
+         points->in_range(new_state,R,(std::vector<edge *> *)&near);
 
          /* find lowest cost for parent */
          weighted_edge * low_edge = get_parent(new_state,&near);
 
          /* insert new edge */
-         if (low_edge && !low_edge->orphan) {
+         if (low_edge) {
             weighted_edge * new_edge = new weighted_edge(low_edge->to,new_state,low_edge);
             new_edge->cost = low_edge->cost+low_edge->to.dist(new_state);
             low_edge->children.push_back(new_edge);
             points->add(new_edge);
 
             /* find any children to rewire */
+            orphanage->in_range(new_state,R,(std::vector<edge *> *)&near);
             rewire_neighbors(new_edge,&near);
          }
       }
@@ -68,16 +80,22 @@ public:
 
    void notify_obstacle(const vertex pos) {
       std::vector<weighted_edge *> near;
-      points->in_range(pos,1,(std::vector<edge *> *)&near);
+      points->in_range(pos,cull_range,(std::vector<edge *> *)&near);
       for (weighted_edge * e : near) {
          if (ce->is_collision(e->from,e->to)) {
+            if (e->parent) {
+               auto result = remove(e->parent->children.begin(),e->parent->children.end(),e);
+               e->parent->children.erase(result,e->parent->children.end());
+               e->parent = NULL;
+            }
             propagate_orphanhood(e);
          }
       }
+      orphanage->in_range(pos,cull_range,(std::vector<edge *> *)&near);
 restart:
       for (weighted_edge * e : near) {
          if (e->orphan) {
-            points->remove(e);
+            orphanage->remove(e);
             auto iterator = remove(near.begin(),near.end(),e);
             near.erase(iterator,near.end());
             delete e;
@@ -86,7 +104,8 @@ restart:
       }
       for (weighted_edge * e : near) {
          std::vector<weighted_edge *> local_near;
-         points->in_range(e->to,1.5,(std::vector<edge *> *)&local_near);
+         points->in_range(e->to,R,(std::vector<edge *> *)&local_near);
+         orphanage->in_range(e->to,R,(std::vector<edge *> *)&local_near);
          rewire_neighbors(e,&local_near);
       }
    }
@@ -114,6 +133,7 @@ private:
              self->cost+self->to.dist(e->to) < e->cost) {
             if (e->parent) {
                auto result = remove(e->parent->children.begin(),e->parent->children.end(),e);
+               e->parent->children.erase(result,e->parent->children.end());
             }
             e->parent = self;
             e->from = self->to;
@@ -126,24 +146,31 @@ private:
    }
 
    inline void adopt(weighted_edge * orphan) {
+      std::unordered_set<long> seen;
       Q.push(orphan);
+      seen.insert((long)orphan);
       while (!Q.empty()) {
          orphan = Q.front(); Q.pop();
          std::vector<weighted_edge *> near;
          orphan->orphan = false;
-         points->in_range(orphan->to,1.5,(std::vector<edge *> *)&near);
+         orphanage->remove(orphan);
+         points->add(orphan);
+         points->in_range(orphan->to,R,(std::vector<edge *> *)&near);
+         orphanage->in_range(orphan->to,R,(std::vector<edge *> *)&near);
          for (weighted_edge * e : near) {
             if (!ce->is_collision(orphan->to,e->to) &&
                 orphan->cost+orphan->to.dist(e->to) < e->cost) {
                if (e->parent) {
                   auto result = remove(e->parent->children.begin(),e->parent->children.end(),e);
+                  e->parent->children.erase(result,e->parent->children.end());
                }
                e->parent = orphan;
                e->from = orphan->to;
                orphan->children.push_back(e);
                e->cost = orphan->cost+orphan->to.dist(e->to);
-               if (e->orphan) 
-                  Q.push(e);
+               if (e->orphan && !seen.count((long)e)) {
+                  Q.push(e); seen.insert((long)e);
+               }
             }
          }
       }
@@ -153,13 +180,11 @@ private:
       Q.push(self);
       while (!Q.empty()) {
          self = Q.front(); Q.pop();
-         /*
-         if (self->parent) {
-            auto result = remove(self->parent->children.begin(),self->parent->children.end(),self);
-            self->parent->children.erase(result,self->parent->children.end());
-         }
-         */
+         if (self->orphan)
+            continue;
          self->orphan = true;
+         points->remove(self);
+         orphanage->add(self);
          self->parent = NULL;
          self->cost = DBL_MAX;
          for (weighted_edge * w : *((std::vector<weighted_edge *> *)&self->children)) {

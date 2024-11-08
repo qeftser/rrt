@@ -189,7 +189,7 @@ int main(int args, char ** argv) {
                   break;
                case sf::Keyboard::S:
                   start = vertex(mouse.x/10,mouse.y/10);
-                  points->start(new edge(start,start));
+                  points->start(new weighted_edge(start,start));
                   points->reset();
                   break;
                case sf::Keyboard::F:

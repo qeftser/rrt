@@ -1,7 +1,7 @@
 
 # RRT Demos
 
-These are just some visualizations of RRT to show it off and help explain and understand it.
+Some visualizations of RRT to show it off and help explain it.
 
 ## Install
 
@@ -52,7 +52,7 @@ Right, L = move right
        C = clear edges
        E = empty environment
        X = display closest route to mouse position
-       F = display only the route to mouse position
+       F = display only the closest route to mouse position
        S = change start point to mouse position and reset
 
 Left  Mouse  = add obstacle
@@ -63,4 +63,5 @@ Middle Mouse = reset generation rate
    Num 0 = Swap to RRT
    Num 1 = Swap to RRT*
    Num 2 = Swap to Q-RRT*
+   Num 3 = Swap to RRTX
 ```
