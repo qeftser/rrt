@@ -17,8 +17,7 @@ public:
 
    rrt() : env(NULL), points(NULL), ce(NULL) {}
    rrt(const vertex init, environment * env, point_set * p, collision_engine * c) : env(env), points(p), ce(c) {
-      edge * start = new edge(init,init);
-      points->start(start);
+      points->add(new edge(init,init));
    }
 
    void generate_next(int num) {
@@ -39,6 +38,11 @@ public:
             points->add(new_edge);
          }
       }
+   }
+
+   void restart(const vertex pos) {
+      points->reset();
+      points->add(new edge(pos,pos));
    }
 };
 

@@ -123,13 +123,7 @@ public:
             e->display_edge(window);
    }
 
-   void start(edge * e) {
-      start_point = e;
-      add(start_point);
-   }
-
    void reset() {
-      remove(start_point);
       for (occupant * o : occupancy) {
          for (edge * e : o->edges) {
             delete e;
@@ -138,7 +132,6 @@ public:
       }
       occupancy.clear();
       apartments.clear();
-      add(start_point);
    }
 
 private:

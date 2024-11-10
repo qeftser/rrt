@@ -19,6 +19,7 @@
 #include "rrt_star.hpp"
 #include "quick_rrt_star.hpp"
 #include "rrt_x.hpp"
+#include "sst.hpp"
 
 void draw_environment(sf::RenderWindow * window, environment * env) {
    sf::RectangleShape rect;
@@ -179,7 +180,7 @@ int main(int args, char ** argv) {
                   paused = !paused;
                   break;
                case sf::Keyboard::C:
-                  points->reset();
+                  rrt_algo->restart(start);
                   break;
                case sf::Keyboard::E:
                   env.clear();
@@ -189,31 +190,35 @@ int main(int args, char ** argv) {
                   break;
                case sf::Keyboard::S:
                   start = vertex(mouse.x/10,mouse.y/10);
-                  points->start(new weighted_edge(start,start));
-                  points->reset();
+                  rrt_algo->restart(start);
                   break;
                case sf::Keyboard::F:
                   focus_path = !focus_path;
                   break;
                case sf::Keyboard::Num0:
                   delete rrt_algo;
-                  rrt_algo = new rrt(start,&env,points,ce);
                   points->reset();
+                  rrt_algo = new rrt(start,&env,points,ce);
                   break;
                case sf::Keyboard::Num1:
                   delete rrt_algo;
-                  rrt_algo = new rrt_star(start,&env,points,ce);
                   points->reset();
+                  rrt_algo = new rrt_star(start,&env,points,ce);
                   break;
                case sf::Keyboard::Num2:
                   delete rrt_algo;
-                  rrt_algo = new quick_rrt_star(start,&env,points,ce);
                   points->reset();
+                  rrt_algo = new quick_rrt_star(start,&env,points,ce);
                   break;
                case sf::Keyboard::Num3:
                   delete rrt_algo;
-                  rrt_algo = new rrt_x(start,&env,points,ce);
                   points->reset();
+                  rrt_algo = new rrt_x(start,&env,points,ce);
+                  break;
+               case sf::Keyboard::Num4:
+                  delete rrt_algo;
+                  points->reset();
+                  rrt_algo = new sst(start,&env,points,ce);
                   break;
             }
          }

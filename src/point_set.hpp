@@ -9,8 +9,6 @@
 class point_set {
 public:
 
-   edge * start_point;
-
    virtual edge * closest(const vertex & v) = 0;
    virtual void in_range(const vertex & v, double range, std::vector<edge *> * results) = 0;
    virtual void add(edge * e) = 0;
@@ -18,10 +16,6 @@ public:
    virtual void reset() = 0;
 
    virtual void draw(sf::RenderWindow * window) = 0;
-
-   virtual void start(edge * e) {
-      start_point = e;
-   }
 
 };
 

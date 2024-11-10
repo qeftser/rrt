@@ -21,8 +21,7 @@ public:
 
    quick_rrt_star() : env(NULL), points(NULL), ce(NULL) {}
    quick_rrt_star(const vertex init, environment * env, point_set * p, collision_engine * c) : env(env), points(p), ce(c) {
-      weighted_edge * start = new weighted_edge(init,init);
-      points->start(start);
+      points->add(new weighted_edge(init,init));
    }
 
    void generate_next(int num) {
@@ -92,6 +91,10 @@ public:
       }
    }
 
+   void restart(const vertex pos) {
+      points->reset();
+      points->add(new weighted_edge(pos,pos));
+   }
 
 };
 

@@ -7,6 +7,7 @@
 #include "environment.hpp"
 #include "rrt_base.hpp"
 #include "bin_point_set.hpp"
+#include "collision_engine.hpp"
 #include <queue>
 #include <vector>
 #include <cfloat>
@@ -24,24 +25,25 @@ class rrt_x : public rrt_base {
 public:
 
    const double R = 1.0;
-   const double cull_range = 3.0;
-   const int orphanage_room_size = 5;
+   const double cull_range = 4.5;
 
    environment * env;
    point_set * points;
    collision_engine * ce;
    struct weighted_edge_compare we_comp;
-   point_set * orphanage;
+   bin_point_set orphanage;
 
    std::queue<weighted_edge *> Q;
 
-   rrt_x() : env(NULL), points(NULL), ce(NULL) {
-      orphanage = new bin_point_set(orphanage_room_size);
+   rrt_x() : env(NULL), points(NULL), ce(NULL), 
+             orphanage(bin_point_set(5)) {}
+   rrt_x(const vertex init, environment * env, point_set * p, collision_engine * c) 
+      : env(env), points(p), ce(c), orphanage(bin_point_set(5)) {
+      points->add(new weighted_edge(init,init));
    }
-   rrt_x(const vertex init, environment * env, point_set * p, collision_engine * c) : env(env), points(p), ce(c) {
-      orphanage = new bin_point_set(orphanage_room_size);
-      weighted_edge * start = new weighted_edge(init,init);
-      points->start(start);
+
+   ~rrt_x() {
+      orphanage.reset();
    }
 
    void generate_next(int num) {
@@ -72,7 +74,7 @@ public:
             points->add(new_edge);
 
             /* find any children to rewire */
-            orphanage->in_range(new_state,R,(std::vector<edge *> *)&near);
+            orphanage.in_range(new_state,R,(std::vector<edge *> *)&near);
             rewire_neighbors(new_edge,&near);
          }
       }
@@ -91,11 +93,11 @@ public:
             propagate_orphanhood(e);
          }
       }
-      orphanage->in_range(pos,cull_range,(std::vector<edge *> *)&near);
+      orphanage.in_range(pos,cull_range,(std::vector<edge *> *)&near);
 restart:
       for (weighted_edge * e : near) {
          if (e->orphan) {
-            orphanage->remove(e);
+            orphanage.remove(e);
             auto iterator = remove(near.begin(),near.end(),e);
             near.erase(iterator,near.end());
             delete e;
@@ -105,9 +107,15 @@ restart:
       for (weighted_edge * e : near) {
          std::vector<weighted_edge *> local_near;
          points->in_range(e->to,R,(std::vector<edge *> *)&local_near);
-         orphanage->in_range(e->to,R,(std::vector<edge *> *)&local_near);
+         orphanage.in_range(e->to,R,(std::vector<edge *> *)&local_near);
          rewire_neighbors(e,&local_near);
       }
+   }
+
+   void restart(const vertex pos) {
+      points->reset();
+      orphanage.reset();
+      points->add(new weighted_edge(pos,pos));
    }
 
 private:
@@ -153,10 +161,10 @@ private:
          orphan = Q.front(); Q.pop();
          std::vector<weighted_edge *> near;
          orphan->orphan = false;
-         orphanage->remove(orphan);
+         orphanage.remove(orphan);
          points->add(orphan);
          points->in_range(orphan->to,R,(std::vector<edge *> *)&near);
-         orphanage->in_range(orphan->to,R,(std::vector<edge *> *)&near);
+         orphanage.in_range(orphan->to,R,(std::vector<edge *> *)&near);
          for (weighted_edge * e : near) {
             if (!ce->is_collision(orphan->to,e->to) &&
                 orphan->cost+orphan->to.dist(e->to) < e->cost) {
@@ -184,7 +192,7 @@ private:
             continue;
          self->orphan = true;
          points->remove(self);
-         orphanage->add(self);
+         orphanage.add(self);
          self->parent = NULL;
          self->cost = DBL_MAX;
          for (weighted_edge * w : *((std::vector<weighted_edge *> *)&self->children)) {
