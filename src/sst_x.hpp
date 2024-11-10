@@ -1,72 +1,111 @@
 
-#ifndef __RRT_X
+#ifndef __SST_X
 
-#define __RRT_X
+#define __SST_X
+#include "environment.hpp"
+#include "edge.hpp"
 #include "weighted_edge.hpp"
 #include "vertex.hpp"
-#include "environment.hpp"
-#include "rrt_base.hpp"
-#include "bin_point_set.hpp"
+#include "point_set.hpp"
 #include "collision_engine.hpp"
+#include "bin_point_set.hpp"
+#include "rrt_base.hpp"
+#include <cfloat>
 #include <queue>
 #include <vector>
 #include <cfloat>
 #include <unordered_set>
 
-class rrt_x : public rrt_base {
+class sst_x : public rrt_base {
 public:
 
    const double R = 1.0;
    const double cull_range = 4.5;
+   const double _Obn = 1.5;
+   const double _Os  = 0.75;
 
    environment * env;
    point_set * points;
    collision_engine * ce;
    bin_point_set orphanage;
+   bin_point_set witness_list;
 
    std::queue<weighted_edge *> Q;
 
-   rrt_x() : env(NULL), points(NULL), ce(NULL), 
-             orphanage(bin_point_set(5)) {}
-   rrt_x(const vertex init, environment * env, point_set * p, collision_engine * c) 
-      : env(env), points(p), ce(c), orphanage(bin_point_set(5)) {
-      points->add(new weighted_edge(init,init));
-   }
+   sst_x() : env(NULL), points(NULL), ce(NULL),
+             orphanage(bin_point_set(5)),
+             witness_list(bin_point_set(5)) {}
+   sst_x(const vertex init, environment * env, point_set * p, collision_engine * c)
+      : env(env), points(p), ce(c), orphanage(bin_point_set(5)), witness_list(bin_point_set(5)) {
+         weighted_edge * start = new weighted_edge(init,init);
+         points->add(start);
+         witness_list.add(new weighted_edge(init,init,start));
+      }
 
-   ~rrt_x() {
+   ~sst_x() {
       orphanage.reset();
+      witness_list.reset();
    }
 
    void generate_next(int num) {
       ce->recalibrate();
       for (int i = 0; i < num; ++i) {
+         /* new sample */
          vertex random = vertex::rand(env->xsize,env->ysize);
-         weighted_edge * nearest = (weighted_edge *)points->closest(random);
 
-         /* state change computation
-          * this is where we can extend to arbitrary DOF
-          */
-         vertex new_state = (random-nearest->to);
-         new_state = (new_state/new_state.dist(vertex()))+nearest->to;
-
-         /* get near vertices */
+         /* try to find nearby points *before* adjusting */
+         weighted_edge * nearest = NULL;
          std::vector<weighted_edge *> near;
-         near.push_back(nearest);
-         points->in_range(new_state,R,(std::vector<edge *> *)&near);
+         points->in_range(random,_Obn,(std::vector<edge *> *)&near);
 
-         /* find lowest cost for parent */
-         weighted_edge * low_edge = get_parent(new_state,&near);
+         if (!near.empty()) {
+            double low_cost = DBL_MAX;
+            for (weighted_edge * e : near) {
+               if (!ce->is_collision(e->to,random) &&
+                   e->cost+e->to.dist(random) < low_cost) {
+                  low_cost = e->cost+e->to.dist(random);
+                  nearest = e;
+               }
+            }
+         }
+         else
+            nearest = (weighted_edge *)points->closest(random);
 
-         /* insert new edge */
-         if (low_edge) {
-            weighted_edge * new_edge = new weighted_edge(low_edge->to,new_state,low_edge);
-            new_edge->cost = low_edge->cost+low_edge->to.dist(new_state);
-            low_edge->children.push_back(new_edge);
-            points->add(new_edge);
+         if (nearest && !ce->is_collision(nearest->to,random)) {
+            if (nearest->to.dist(random) >= _Obn) {
+               random = random-nearest->to;
+               random = ((random/random.dist(vertex()))*((double)rand()/RAND_MAX))+nearest->to; // monte-carlo prop
+            }
 
-            /* find any children to rewire */
-            orphanage.in_range(new_state,R,(std::vector<edge *> *)&near);
-            rewire_neighbors(new_edge,&near);
+            weighted_edge * new_edge = new weighted_edge(nearest->to,random,nearest);
+            new_edge->cost = nearest->cost+nearest->to.dist(random);
+
+            edge * witness = witness_list.closest(new_edge->to);
+
+            if (witness->to.dist(new_edge->to) > _Os) {
+               edge * new_witness = new edge(new_edge->to,new_edge->to,new_edge);
+               witness_list.add(new_witness);
+               nearest->children.push_back(new_edge);
+               points->add(new_edge);
+            }
+            else {
+               if (((weighted_edge *)witness->parent)->cost < new_edge->cost) {
+                  delete new_edge;
+               }
+               else {
+                  auto result = std::remove(witness->parent->parent->children.begin(),
+                                            witness->parent->parent->children.end(),
+                                            witness->parent);
+                  witness->parent->parent->children.erase(result,
+                        witness->parent->parent->children.end());
+                  swap_parents(witness->parent,new_edge);
+                  points->remove(witness->parent);
+                  delete witness->parent;
+                  witness->parent = new_edge;
+                  nearest->children.push_back(new_edge);
+                  points->add(new_edge);
+               }
+            }
          }
       }
    }
@@ -106,7 +145,10 @@ restart:
    void restart(const vertex pos) {
       points->reset();
       orphanage.reset();
-      points->add(new weighted_edge(pos,pos));
+      witness_list.reset();
+      weighted_edge * start = new weighted_edge(pos,pos);
+      points->add(start);
+      witness_list.add(new weighted_edge(pos,pos,start));
    }
 
 private:
@@ -193,6 +235,16 @@ private:
       }
    }
 
+   inline void swap_parents(edge * old, edge * nev) {
+      for (edge * e : old->children) {
+         e->parent = nev;
+         e->from = nev->to;
+         nev->children.push_back(e);
+      }
+      old->children.clear();
+   }
+
 };
+
 
 #endif
