@@ -4,6 +4,7 @@
 #define __VERTEX
 #include <cmath>
 #include <cstdlib>
+#include <cstdio>
 
 class vertex {
 public:

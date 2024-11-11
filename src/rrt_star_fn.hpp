@@ -118,7 +118,6 @@ restart:
 
          }
       }
-      printf("count: %d\n",count);
    }
 
    void restart(const vertex pos) {

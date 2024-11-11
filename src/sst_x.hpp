@@ -9,7 +9,6 @@
 #include "collision_engine.hpp"
 #include "bin_point_set.hpp"
 #include "rrt_base.hpp"
-#include <cfloat>
 #include <queue>
 #include <vector>
 #include <cfloat>
