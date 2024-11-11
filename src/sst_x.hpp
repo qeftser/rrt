@@ -18,10 +18,10 @@
 class sst_x : public rrt_base {
 public:
 
-   const double R = 1.5;          // range to check for edges to adopt
+   const double R = 1.0;          // range to check for edges to adopt
    const double cull_range = 4.5; // range to cull edges when blocked by obstacles
    const double _Obn = 1.5;       // max edge length
-   const double _Os  = 1.0;       // diameter of dominance regions
+   const double _Os  = 1.25;       // diameter of dominance regions
 
    environment * env;
    point_set * points;
