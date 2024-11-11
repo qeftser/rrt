@@ -20,6 +20,7 @@
 #include "quick_rrt_star.hpp"
 #include "rrt_x.hpp"
 #include "sst.hpp"
+#include "sst_x.hpp"
 
 void draw_environment(sf::RenderWindow * window, environment * env) {
    sf::RectangleShape rect;
@@ -219,6 +220,11 @@ int main(int args, char ** argv) {
                   delete rrt_algo;
                   points->reset();
                   rrt_algo = new sst(start,&env,points,ce);
+                  break;
+               case sf::Keyboard::Num5:
+                  delete rrt_algo;
+                  points->reset();
+                  rrt_algo = new sst_x(start,&env,points,ce);
                   break;
             }
          }

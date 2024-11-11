@@ -65,4 +65,5 @@ Middle Mouse = reset generation rate
    Num 2 = Swap to Q-RRT*
    Num 3 = Swap to RRTX
    Num 4 = Swap to SST
+   Num 5 = Swap to SSTX
 ```
