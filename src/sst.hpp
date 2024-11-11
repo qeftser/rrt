@@ -4,7 +4,6 @@
 #define __SST
 #include "environment.hpp"
 #include "edge.hpp"
-#include "weighted_edge.hpp"
 #include "vertex.hpp"
 #include "point_set.hpp"
 #include "collision_engine.hpp"
@@ -27,9 +26,9 @@ public:
            witness_list(bin_point_set(5)) {}
    sst(const vertex init, environment * env, point_set * p, collision_engine * c) 
       : env(env), points(p), ce(c), witness_list(bin_point_set(5)) {
-      weighted_edge * start = new weighted_edge(init,init);
+      edge * start = new edge(init,init);
       points->add(start);
-      witness_list.add(new weighted_edge(init,init,start));
+      witness_list.add(new edge(init,init,start));
    }
 
    ~sst() {
@@ -39,9 +38,9 @@ public:
    void restart(const vertex pos) {
       points->reset();
       witness_list.reset();
-      weighted_edge * start = new weighted_edge(pos,pos);
+      edge * start = new edge(pos,pos);
       points->add(start);
-      witness_list.add(new weighted_edge(pos,pos,start));
+      witness_list.add(new edge(pos,pos,start));
    }
 
    void generate_next(int num) {
@@ -52,13 +51,13 @@ public:
          vertex random = vertex::rand(env->xsize,env->ysize);
 
          /* try to find nearby points *before* adjusting */
-         weighted_edge * nearest = NULL;
-         std::vector<weighted_edge *> near;
-         points->in_range(random,_Obn,(std::vector<edge *> *)&near);
+         edge * nearest = NULL;
+         std::vector<edge *> near;
+         points->in_range(random,_Obn,&near);
 
          if (!near.empty()) {
             double low_cost = DBL_MAX;
-            for (weighted_edge * e : near) {
+            for (edge * e : near) {
                if (!ce->is_collision(e->to,random) &&
                    e->cost+e->to.dist(random) < low_cost) {
                   low_cost = e->cost+e->to.dist(random);
@@ -67,7 +66,7 @@ public:
             }
          }
          else
-            nearest = (weighted_edge *)points->closest(random);
+            nearest = points->closest(random);
 
          if (nearest && !ce->is_collision(nearest->to,random)) {
             if (nearest->to.dist(random) >= _Obn) {
@@ -75,7 +74,7 @@ public:
                random = ((random/random.dist(vertex()))*((double)rand()/RAND_MAX))+nearest->to; // monte-carlo prop
             }
 
-            weighted_edge * new_edge = new weighted_edge(nearest->to,random,nearest);
+            edge * new_edge = new edge(nearest->to,random,nearest);
             new_edge->cost = nearest->cost+nearest->to.dist(random);
 
             edge * witness = witness_list.closest(new_edge->to);
@@ -87,7 +86,7 @@ public:
                points->add(new_edge);
             }
             else {
-               if (((weighted_edge *)witness->parent)->cost < new_edge->cost) {
+               if (witness->parent->cost < new_edge->cost) {
                   delete new_edge;
                }
                else {

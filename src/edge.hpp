@@ -13,14 +13,20 @@ public:
    vertex to;
    edge * parent;
    std::vector<edge *> children;
+   double cost;
+   bool orphan;
 
-   edge() : children(std::vector<edge *>()), parent(NULL) {}
+   edge() : children(std::vector<edge *>()), parent(NULL), cost(0), orphan(false) {}
    edge(vertex from, vertex to) 
-      : children(std::vector<edge *>()), parent(NULL), from(from), to(to) {}
+      : children(std::vector<edge *>()), parent(NULL), 
+        from(from), to(to), cost(0), orphan(false) {}
    edge(vertex from, vertex to, edge * parent) 
-      : children(std::vector<edge *>()), parent(parent), from(from), to(to) {}
+      : children(std::vector<edge *>()), parent(parent), 
+        from(from), to(to), cost(0), orphan(false) {}
 
-   virtual void display_edge(sf::RenderWindow * w) {
+   void display_edge(sf::RenderWindow * w) {
+      if (orphan)
+         return;
       sf::Vertex points[2];
       points[0].position = sf::Vector2f(from.x*10,from.y*10);
       points[1].position = sf::Vector2f(to.x*10,to.y*10);
