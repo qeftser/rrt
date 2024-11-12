@@ -69,4 +69,5 @@ Middle Mouse = reset generation rate
    Num 6 = Swap to RRT*FN
    Num 7 = Swap to SSTFN
    Num 8 = Swap to RRTXFN
+   Num 9 = Swap to SSTXFN
 ```

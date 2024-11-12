@@ -17,7 +17,7 @@ public:
 
    const double R = 1.0;
    const double cull_range = 4.5;
-   const double fixed_limit = 25000;
+   const int fixed_limit = 25000;
    int count = 0;
 
    environment * env;
