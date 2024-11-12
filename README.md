@@ -60,6 +60,9 @@ Right Mouse  = remove obstacle
 Scroll Wheel = increase/decrease generation rate
 Middle Mouse = reset generation rate
 
+       [ = Previous map preset
+       ] = Next map preset
+
    Num 0 = Swap to RRT
    Num 1 = Swap to RRT*
    Num 2 = Swap to Q-RRT*

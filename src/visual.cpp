@@ -26,6 +26,8 @@
 #include "rrt_x_fn.hpp"
 #include "sst_x_fn.hpp"
 
+#include "presets.hpp"
+
 void draw_environment(sf::RenderWindow * window, environment * env) {
    sf::RectangleShape rect;
    
@@ -75,6 +77,8 @@ int main(int args, char ** argv) {
    /* SFML/GUI window and status tracking */
    double winScale;
    double startX, startY, posX, posY;
+
+   int curr_map = 0;
 
    bool   leftMouseDown = false;
    bool   rightMouseDown = false;
@@ -131,6 +135,8 @@ int main(int args, char ** argv) {
          }
       }
 
+      bool is_ctrl = false;
+      bool is_shift = false;
       while (window.pollEvent(event)) {
          if (event.type == sf::Event::Closed) {
             window.close();
@@ -141,7 +147,7 @@ int main(int args, char ** argv) {
          }
          else if (event.type == sf::Event::MouseButtonPressed) {
             if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Middle))
-               rate = 1;
+               rate = (rate == 1 ? 3333 : 1);
             if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
                leftMouseDown = true;
             if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right))
@@ -250,7 +256,19 @@ int main(int args, char ** argv) {
                   points->reset();
                   rrt_algo = new sst_x_fn(start,&env,points,ce);
                   break;
-            }
+               case sf::Keyboard::LBracket:
+                  curr_map = (curr_map ? curr_map - 1 : 9);
+                  presets::load_map(env.occupancy,curr_map);
+                  paused = true;
+                  rrt_algo->restart(start);
+                  break;
+               case sf::Keyboard::RBracket:
+                  curr_map = (curr_map + 1)%10;
+                  presets::load_map(env.occupancy,curr_map);
+                  paused = true;
+                  rrt_algo->restart(start);
+                  break;
+           }
          }
       }
 
