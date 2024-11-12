@@ -126,7 +126,7 @@ restart:
       points->add(start);
       infertile.clear();
       infertile.insert((long)start);
-      count = 0;
+      count = 1;
    }
 
 private:
@@ -139,6 +139,5 @@ private:
       return (edge *)*it;
    }
 };
-
 
 #endif
