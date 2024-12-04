@@ -28,6 +28,8 @@
 
 #include "presets.hpp"
 
+#define RESET_TIMING 600
+
 void draw_environment(sf::RenderWindow * window, environment * env) {
    sf::RectangleShape rect;
    
@@ -79,11 +81,13 @@ int main(int args, char ** argv) {
    double startX, startY, posX, posY;
 
    int curr_map = 0;
+   int count = RESET_TIMING;
 
    bool   leftMouseDown = false;
    bool   rightMouseDown = false;
    bool   display_path = false;
    bool   focus_path = false;
+   bool   ticking = false;
    bool   paused;
    int    lastKey;
    int    xpos, ypos;
@@ -206,6 +210,9 @@ int main(int args, char ** argv) {
                case sf::Keyboard::F:
                   focus_path = !focus_path;
                   break;
+               case sf::Keyboard::R:
+                  ticking = !ticking;
+                  count = RESET_TIMING;
                case sf::Keyboard::Num0:
                   delete rrt_algo;
                   points->reset();
@@ -286,6 +293,14 @@ int main(int args, char ** argv) {
          points->draw(&window);
       if (display_path || focus_path)
          draw_path(&mouse,&window,points);
+
+      if (ticking) {
+         if (count == 0) {
+            count = RESET_TIMING+1;
+            rrt_algo->restart(start);
+         }
+         --count;
+      }
 
       /* end drawings here */
 

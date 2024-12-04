@@ -54,6 +54,7 @@ Right, L = move right
        X = display closest route to mouse position
        F = display only the closest route to mouse position
        S = change start point to mouse position and reset
+       R = toggle reset every 20 seconds
 
 Left  Mouse  = add obstacle
 Right Mouse  = remove obstacle
